@@ -1,9 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LLM Token Calculator | 大模型Token计算器</title>
+    <!-- SEO优化标题 -->
+    <title>LLM Token Calculate</title>
+    
+    <!-- 元描述标签 -->
+    <meta name="description" content="The free online LLM Token calculator supports the estimation of token counts and API call cost calculations for major language models such as GPT-3.5, GPT-4, GPT-4o, Claude, and Llama 3, helping to optimize the cost of using AI interfaces.
+">
+    
+    <!-- 关键词标签 -->
+    <meta name="keywords" content="Token Calculator, LLM Token Calculation, GPT-3.5 Token, GPT-4 Token, Large Model Cost Estimation, AI Token Calculation, Claude Token, Llama 3 Token">
+    
+    <!-- 搜索引擎验证标签（请替换为你的验证代码） -->
+    <meta name="baidu-site-verification" content="你的百度验证代码">
+	<meta name="google-site-verification" content="YtqCID1zvWZekC8c11XJjxVrde1U3rRonR-44gRmO3A" />
+    <!-- 规范URL -->
+    <link rel="canonical" href="https://563000524.github.io/llm-token.html">
+    
+    <!-- 其他资源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -106,6 +122,7 @@
         <button id="theme-toggle" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-300 transition-all-300 flex items-center justify-center gap-1">
             <i class="fa fa-moon-o"></i>
             <span class="lang-en hidden sm:inline">Dark</span>
+            <span class="lang-zh hidden sm:inline">深色</span>
         </button>
         
         <!-- 语言切换 -->
@@ -128,10 +145,34 @@
                 <span class="lang-zh">大模型Token计算器</span>
             </h1>
             <p class="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
-                <span class="lang-en">Calculate token count for AI models, estimate costs</span>
-                <span class="lang-zh">计算AI模型的token数量，预估成本</span>
+                <span class="lang-en">Free tool to calculate token count and estimate API costs for GPT-3.5, GPT-4, Claude, Llama 3 and other large language models.</span>
+                <span class="lang-zh">免费工具，用于计算GPT-3.5、GPT-4、Claude、Llama 3等大语言模型的Token数量并估算API成本。</span>
             </p>
         </header>
+
+        <!-- SEO优化内容区：增加关键词丰富的内容 -->
+        <section class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 class="text-xl font-semibold mb-4 lang-en">About LLM Token Calculation</h2>
+            <h2 class="text-xl font-semibold mb-4 lang-zh">关于大模型Token计算</h2>
+            
+            <p class="text-gray-600 mb-3 lang-en">
+                Token calculation is essential for efficiently using large language models like GPT-3.5, GPT-4, and Claude. 
+                Each model has different pricing per 1000 tokens, making it important to estimate token usage before API calls.
+                Our token calculator helps you predict token count and associated costs accurately.
+            </p>
+            <p class="text-gray-600 mb-3 lang-zh">
+                Token计算对于高效使用GPT-3.5、GPT-4和Claude等大语言模型至关重要。每个模型每1000个Token的定价不同，
+                因此在调用API前估算Token使用量非常重要。我们的Token计算器可帮助您准确预测Token数量和相关成本。
+            </p>
+            
+            <p class="text-gray-600 lang-en">
+                Whether you're working with English, Chinese, or other languages, our tool provides reliable token estimates 
+                to help manage your API expenses and optimize your interactions with AI models.
+            </p>
+            <p class="text-gray-600 lang-zh">
+                无论您使用英语、中文还是其他语言，我们的工具都能提供可靠的Token估算，帮助您管理API支出并优化与AI模型的交互。
+            </p>
+        </section>
 
         <!-- 主要内容区 - 响应式边距 -->
         <main class="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 transform hover:shadow-xl transition-all-300">
@@ -241,8 +282,8 @@
                     <span class="lang-zh">什么是Token?</span>
                 </h3>
                 <p class="text-gray-600 text-sm">
-                    <span class="lang-en">A basic unit for AI models to process text, which can be a word, part of a word, or a character.</span>
-                    <span class="lang-zh">AI模型处理文本的基本单位，可以是单词、单词的一部分或单个字符。</span>
+                    <span class="lang-en">A basic unit for AI models to process text, which can be a word, part of a word, or a character. For GPT models, 1 token is approximately 4 English characters or 1 Chinese character.</span>
+                    <span class="lang-zh">AI模型处理文本的基本单位，可以是单词、单词的一部分或单个字符。对于GPT模型，1个Token大约等于4个英文字符或1个中文字符。</span>
                 </p>
             </div>
             <div class="bg-white rounded-xl shadow p-4 sm:p-6 transform hover:shadow-md transition-all-300">
@@ -252,329 +293,4 @@
                     <span class="lang-zh">使用提示</span>
                 </h3>
                 <p class="text-gray-600 text-sm">
-                    <span class="lang-en">Estimated values with ±5% error. Total tokens include input and output.</span>
-                    <span class="lang-zh">估算值有±5%误差。总token消耗包括输入和输出。</span>
-                </p>
-            </div>
-        </div>
-
-        <!-- 页脚 - 响应式文本大小 -->
-        <footer class="text-center text-gray-500 text-xs sm:text-sm py-4 mt-auto">
-            <p>
-                <span class="lang-en">© 2023 Token Calculator</span>
-                <span class="lang-zh">© 2023 Token计算器</span>
-            </p>
-        </footer>
-    </div>
-
-    <script>
-        // 等待DOM加载完成
-        document.addEventListener('DOMContentLoaded', () => {
-            // 获取DOM元素
-            const textInput = document.getElementById('text-input');
-            const calculateBtn = document.getElementById('calculate-btn');
-            const clearBtn = document.getElementById('clear-btn');
-            const modelSelect = document.getElementById('model-select');
-            const charCount = document.getElementById('char-count');
-            const wordCount = document.getElementById('word-count');
-            const tokenCount = document.getElementById('token-count');
-            const estimatedCost = document.getElementById('estimated-cost');
-            const resultContainer = document.getElementById('result-container');
-            const modelInfo = document.getElementById('model-info');
-            const btnEn = document.getElementById('btn-en');
-            const btnZh = document.getElementById('btn-zh');
-            const themeToggle = document.getElementById('theme-toggle');
-            const body = document.body;
-
-            // 检查本地存储中的主题偏好
-            if (localStorage.getItem('darkMode') === 'true') {
-                enableDarkMode();
-            }
-
-            // 模型信息映射表 - 包含中英文说明
-            const modelInfoMap = {
-                'gpt-3.5-turbo': {
-                    en: 'GPT-3.5 Turbo: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'GPT-3.5 Turbo：1个Token约等于4个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.0015,
-                    chineseFactor: 1,
-                    englishFactor: 4
-                },
-                'gpt-4': {
-                    en: 'GPT-4: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'GPT-4：1个Token约等于4个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.03,
-                    chineseFactor: 1,
-                    englishFactor: 4
-                },
-                'gpt-4o': {
-                    en: 'GPT-4o: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'GPT-4o：1个Token约等于4个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.005,
-                    chineseFactor: 1,
-                    englishFactor: 4
-                },
-                'text-davinci-003': {
-                    en: 'Text Davinci 003: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'Text Davinci 003：1个Token约等于4个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.02,
-                    chineseFactor: 1,
-                    englishFactor: 4
-                },
-                'claude-2': {
-                    en: 'Claude 2: 1 token ≈ 3.5 English chars or 1 Chinese char.',
-                    zh: 'Claude 2：1个Token约等于3.5个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.011,
-                    chineseFactor: 1,
-                    englishFactor: 3.5
-                },
-                'llama-3': {
-                    en: 'Llama 3: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'Llama 3：1个Token约等于4个英文字符或1个中文字符。',
-                    costPer1KTokens: 0.002,
-                    chineseFactor: 1,
-                    englishFactor: 4
-                }
-            };
-
-            // 启用深色模式
-            function enableDarkMode() {
-                body.classList.add('dark-mode');
-                themeToggle.innerHTML = `
-                    <i class="fa fa-sun-o"></i>
-                    <span class="lang-en hidden sm:inline">Light</span>
-                `;
-                themeToggle.classList.remove('bg-gray-200', 'text-gray-700');
-                themeToggle.classList.add('bg-gray-700', 'text-white');
-                localStorage.setItem('darkMode', 'true');
-            }
-
-            // 禁用深色模式（启用浅色模式）
-            function disableDarkMode() {
-                body.classList.remove('dark-mode');
-                themeToggle.innerHTML = `
-                    <i class="fa fa-moon-o"></i>
-                    <span class="lang-en hidden sm:inline">Dark</span>
-                `;
-                themeToggle.classList.remove('bg-gray-700', 'text-white');
-                themeToggle.classList.add('bg-gray-200', 'text-gray-700');
-                localStorage.setItem('darkMode', 'false');
-            }
-
-            // 切换深色/浅色模式
-            themeToggle.addEventListener('click', () => {
-                if (body.classList.contains('dark-mode')) {
-                    disableDarkMode();
-                } else {
-                    enableDarkMode();
-                }
-            });
-
-            // 文本框占位符的中英文切换
-            const updatePlaceholder = (lang) => {
-                if (lang === 'en') {
-                    textInput.placeholder = 'Enter text to calculate tokens...';
-                } else {
-                    textInput.placeholder = '请输入需要计算Token的文本内容...';
-                }
-            };
-
-            // 语言切换功能
-            btnEn.addEventListener('click', () => {
-                body.classList.remove('show-zh');
-                body.classList.add('show-en');
-                btnEn.classList.remove('bg-gray-200', 'text-gray-700');
-                btnEn.classList.add('bg-primary', 'text-white');
-                btnZh.classList.remove('bg-primary', 'text-white');
-                btnZh.classList.add('bg-gray-200', 'text-gray-700');
-                updatePlaceholder('en');
-                // 更新主题按钮文本
-                if (body.classList.contains('dark-mode')) {
-                    themeToggle.innerHTML = `
-                        <i class="fa fa-sun-o"></i>
-                        <span class="lang-en hidden sm:inline">Light</span>
-                        <span class="lang-zh hidden sm:inline">浅色</span>
-                    `;
-                } else {
-                    themeToggle.innerHTML = `
-                        <i class="fa fa-moon-o"></i>
-                        <span class="lang-en hidden sm:inline">Dark</span>
-                        <span class="lang-zh hidden sm:inline">深色</span>
-                    `;
-                }
-                // 如果已有结果，更新模型信息
-                if (!resultContainer.classList.contains('hidden')) {
-                    updateModelInfo(modelSelect.value);
-                }
-            });
-
-            btnZh.addEventListener('click', () => {
-                body.classList.remove('show-en');
-                body.classList.add('show-zh');
-                btnZh.classList.remove('bg-gray-200', 'text-gray-700');
-                btnZh.classList.add('bg-primary', 'text-white');
-                btnEn.classList.remove('bg-primary', 'text-white');
-                btnEn.classList.add('bg-gray-200', 'text-gray-700');
-                updatePlaceholder('zh');
-                // 更新主题按钮文本
-                if (body.classList.contains('dark-mode')) {
-                    themeToggle.innerHTML = `
-                        <i class="fa fa-sun-o"></i>
-                        <span class="lang-en hidden sm:inline">Light</span>
-                        <span class="lang-zh hidden sm:inline">浅色</span>
-                    `;
-                } else {
-                    themeToggle.innerHTML = `
-                        <i class="fa fa-moon-o"></i>
-                        <span class="lang-en hidden sm:inline">Dark</span>
-                        <span class="lang-zh hidden sm:inline">深色</span>
-                    `;
-                }
-                // 如果已有结果，更新模型信息
-                if (!resultContainer.classList.contains('hidden')) {
-                    updateModelInfo(modelSelect.value);
-                }
-            });
-
-            // 更新模型信息文本（根据当前语言）
-            const updateModelInfo = (model) => {
-                modelInfo.innerHTML = `
-                    <span class="lang-en">${modelInfoMap[model].en}</span>
-                    <span class="lang-zh">${modelInfoMap[model].zh}</span>
-                `;
-            };
-
-            // 更新字符计数和单词计数
-            const updateCounters = () => {
-                const text = textInput.value;
-                
-                // 字符计数
-                const charLength = text.length;
-                charCount.innerHTML = `
-                    <i class="fa fa-pencil mr-1"></i>
-                    <span class="lang-en">Chars: ${charLength}</span>
-                    <span class="lang-zh">字符: ${charLength}</span>
-                `;
-                
-                // 单词计数（简单处理）
-                const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-                wordCount.innerHTML = `
-                    <i class="fa fa-font mr-1"></i>
-                    <span class="lang-en">Words: ${words.length}</span>
-                    <span class="lang-zh">单词: ${words.length}</span>
-                `;
-                
-                // 启用/禁用计算按钮
-                calculateBtn.disabled = charLength === 0;
-            };
-
-            // 计算中文字符和英文字符数量
-            const countCharsByType = (text) => {
-                let chineseChars = 0;
-                let englishChars = 0;
-                const chineseRegex = /[\u4e00-\u9fa5]/g; // 匹配中文字符
-                const englishRegex = /[a-zA-Z]/g; // 匹配英文字符
-                
-                // 计算中文字符
-                const chineseMatches = text.match(chineseRegex);
-                if (chineseMatches) {
-                    chineseChars = chineseMatches.length;
-                }
-                
-                // 计算英文字符
-                const englishMatches = text.match(englishRegex);
-                if (englishMatches) {
-                    englishChars = englishMatches.length;
-                }
-                
-                // 其他字符（数字、符号等）按英文字符处理
-                const otherChars = text.length - chineseChars - englishChars;
-                
-                return {
-                    chinese: chineseChars,
-                    english: englishChars + otherChars
-                };
-            };
-
-            // 计算Token数量（使用近似算法）
-            const calculateTokens = () => {
-                try {
-                    const text = textInput.value;
-                    const model = modelSelect.value;
-                    const modelData = modelInfoMap[model];
-                    
-                    // 显示加载状态
-                    calculateBtn.disabled = true;
-                    calculateBtn.innerHTML = `
-                        <i class="fa fa-spinner fa-spin mr-2"></i>
-                        <span class="lang-en">Calculating...</span>
-                        <span class="lang-zh">计算中...</span>
-                    `;
-                    
-                    // 按字符类型计数
-                    const { chinese, english } = countCharsByType(text);
-                    
-                    // 估算token数量
-                    const tokenLength = Math.ceil(
-                        (chinese / modelData.chineseFactor) + 
-                        (english / modelData.englishFactor)
-                    );
-                    
-                    // 计算预估成本
-                    const cost = (tokenLength / 1000) * modelData.costPer1KTokens;
-                    
-                    // 更新结果
-                    tokenCount.textContent = tokenLength;
-                    estimatedCost.textContent = `$${cost.toFixed(6)}`;
-                    updateModelInfo(model);
-                    
-                    // 显示结果容器
-                    resultContainer.classList.remove('hidden');
-                    
-                } catch (error) {
-                    console.error('Error calculating tokens:', error);
-                    const errorMsg = body.classList.contains('show-en') 
-                        ? 'Error calculating tokens. Please try again.'
-                        : '计算Token时出错，请重试。';
-                    alert(errorMsg);
-                } finally {
-                    // 恢复按钮状态
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = `
-                        <i class="fa fa-calculator mr-2"></i>
-                        <span class="lang-en">Calculate Tokens</span>
-                        <span class="lang-zh">计算Token</span>
-                    `;
-                }
-            };
-
-            // 清空输入
-            const clearInput = () => {
-                textInput.value = '';
-                updateCounters();
-                resultContainer.classList.add('hidden');
-            };
-
-            // 事件监听
-            textInput.addEventListener('input', updateCounters);
-            calculateBtn.addEventListener('click', calculateTokens);
-            clearBtn.addEventListener('click', clearInput);
-            modelSelect.addEventListener('change', () => {
-                // 当模型改变时，如果已有结果则重新计算
-                if (!resultContainer.classList.contains('hidden') && textInput.value.trim() !== '') {
-                    calculateTokens();
-                }
-            });
-
-            // 初始化
-            updateCounters();
-            updatePlaceholder('en');
-
-            // 处理窗口大小变化，优化移动体验
-            window.addEventListener('resize', () => {
-                // 可以添加特定的响应式调整逻辑
-            });
-        });
-    </script>
-</body>
-</html>
+                    <span class="lang
