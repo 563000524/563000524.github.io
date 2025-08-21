@@ -3,20 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- SEO优化标题 -->
     <title>LLM Token Calculate</title>
     
-    <!-- 元描述标签 -->
-    <meta name="description" content="The free online LLM Token calculator supports the estimation of token counts and API call cost calculations for major language models such as GPT-3.5, GPT-4, GPT-4o, Claude, and Llama 3, helping to optimize the cost of using AI interfaces.
-">
+    <meta name="description" content="The free online LLM Token calculator supports the estimation of token counts and API call cost calculations for major language models such as GPT-3.5, GPT-4, GPT-4o, Claude, Llama 3, Doubao, Qianwen, helping to optimize the cost of using AI interfaces.">
     
-    <!-- 关键词标签 -->
-    <meta name="keywords" content="Token Calculator, LLM Token Calculation, GPT-3.5 Token, GPT-4 Token, Large Model Cost Estimation, AI Token Calculation, Claude Token, Llama 3 Token">
+    <meta name="keywords" content="Token Calculator, LLM Token Calculation, GPT-3.5 Token, GPT-4 Token, Doubao Token, Qianwen Token, Large Model Cost Estimation, AI Token Calculation, Claude Token, Llama 3 Token">
     
-    <!-- 搜索引擎验证标签（请替换为你的验证代码） -->
     <meta name="baidu-site-verification" content="你的百度验证代码">
 	<meta name="google-site-verification" content="YtqCID1zvWZekC8c11XJjxVrde1U3rRonR-44gRmO3A" />
-    <!-- 规范URL -->
     <link rel="canonical" href="https://563000524.github.io/llm-token.html">
 	
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,6 +57,10 @@
             }
             .show-zh .lang-zh {
                 display: inline;
+            }
+            .model-approx {
+                font-size: 0.85em;
+                opacity: 0.8;
             }
             /* 深色模式样式 */
             .dark-mode {
@@ -162,8 +160,11 @@
                     <option value="gpt-4">GPT-4</option>
                     <option value="gpt-4o">GPT-4o</option>
                     <option value="text-davinci-003">Text Davinci 003</option>
-                    <option value="claude-2">Claude 2 (approx)</option>
-                    <option value="llama-3">Llama 3 (approx)</option>
+                    <option value="claude-2">Claude 2 <span class="model-approx">(估算)</span></option>
+                    <option value="llama-3">Llama 3 <span class="model-approx">(估算)</span></option>
+                    <option value="doubao">豆包 (Doubao) <span class="model-approx">(估算)</span></option>
+                    <option value="qianwen">千问 (Qianwen) <span class="model-approx">(估算)</span></option>
+                    <option value="ernie">文心一言 (ERNIE) <span class="model-approx">(估算)</span></option>
                 </select>
             </div>
 
@@ -252,12 +253,12 @@
             <div class="bg-white rounded-xl shadow p-4 sm:p-6 transform hover:shadow-md transition-all-300">
                 <h3 class="text-lg font-semibold text-neutral mb-2 sm:mb-3 flex items-center">
                     <i class="fa fa-question-circle text-primary mr-2"></i>
-                    <span class="lang-en">What is a Token?</span>
-                    <span class="lang-zh">什么是Token?</span>
+                    <span class="lang-en">What is "approx"?</span>
+                    <span class="lang-zh">"估算"是什么意思?</span>
                 </h3>
                 <p class="text-gray-600 text-sm">
-                    <span class="lang-en">A basic unit for AI models to process text, which can be a word, part of a word, or a character.</span>
-                    <span class="lang-zh">AI模型处理文本的基本单位，可以是单词、单词的一部分或单个字符。</span>
+                    <span class="lang-en">"approx" means approximate. For models that don't publicly disclose their tokenization methods, we provide estimated values based on similar models.</span>
+                    <span class="lang-zh">"估算"表示近似值。对于未公开token计算方法的模型，我们基于相似模型提供估算值。</span>
                 </p>
             </div>
             <div class="bg-white rounded-xl shadow p-4 sm:p-6 transform hover:shadow-md transition-all-300">
@@ -337,17 +338,38 @@
                     englishFactor: 4
                 },
                 'claude-2': {
-                    en: 'Claude 2: 1 token ≈ 3.5 English chars or 1 Chinese char.',
-                    zh: 'Claude 2：1个Token约等于3.5个英文字符或1个中文字符。',
+                    en: 'Claude 2: 1 token ≈ 3.5 English chars or 1 Chinese char (approximate).',
+                    zh: 'Claude 2：1个Token约等于3.5个英文字符或1个中文字符（估算）。',
                     costPer1KTokens: 0.011,
                     chineseFactor: 1,
                     englishFactor: 3.5
                 },
                 'llama-3': {
-                    en: 'Llama 3: 1 token ≈ 4 English chars or 1 Chinese char.',
-                    zh: 'Llama 3：1个Token约等于4个英文字符或1个中文字符。',
+                    en: 'Llama 3: 1 token ≈ 4 English chars or 1 Chinese char (approximate).',
+                    zh: 'Llama 3：1个Token约等于4个英文字符或1个中文字符（估算）。',
                     costPer1KTokens: 0.002,
                     chineseFactor: 1,
+                    englishFactor: 4
+                },
+                'doubao': {
+                    en: 'Doubao: 1 token ≈ 2 Chinese chars or 4 English chars (approximate).',
+                    zh: '豆包：1个Token约等于2个中文字符或4个英文字符（估算）。',
+                    costPer1KTokens: 0.0012,
+                    chineseFactor: 2,
+                    englishFactor: 4
+                },
+                'qianwen': {
+                    en: 'Qianwen: 1 token ≈ 2 Chinese chars or 4 English chars (approximate).',
+                    zh: '千问：1个Token约等于2个中文字符或4个英文字符（估算）。',
+                    costPer1KTokens: 0.001,
+                    chineseFactor: 2,
+                    englishFactor: 4
+                },
+                'ernie': {
+                    en: 'ERNIE: 1 token ≈ 2 Chinese chars or 4 English chars (approximate).',
+                    zh: '文心一言：1个Token约等于2个中文字符或4个英文字符（估算）。',
+                    costPer1KTokens: 0.0015,
+                    chineseFactor: 2,
                     englishFactor: 4
                 }
             };
@@ -475,8 +497,13 @@
                     <span class="lang-zh">单词: ${words.length}</span>
                 `;
                 
-                // 启用/禁用计算按钮
+                // 启用/禁用计算按钮 - 修复按钮无法点击的问题
                 calculateBtn.disabled = charLength === 0;
+                if (charLength > 0) {
+                    calculateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    calculateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
             };
 
             // 计算中文字符和英文字符数量
@@ -577,13 +604,13 @@
                 }
             });
 
-            // 初始化
+            // 初始化 - 确保按钮状态正确
             updateCounters();
             updatePlaceholder('en');
 
             // 处理窗口大小变化，优化移动体验
             window.addEventListener('resize', () => {
-                // 可以添加特定的响应式调整逻辑
+                // 响应式调整逻辑
             });
         });
     </script>
