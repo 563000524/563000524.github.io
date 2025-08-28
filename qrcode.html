@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator & Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        accent: '#8B5CF6',
+                        dark: {
+                            800: '#1F2937',
+                            900: '#111827',
+                            950: '#030712'
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .card-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            }
+            .dark .card-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
+            }
+            .input-focus { @apply focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none; }
+            .btn-hover { @apply hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300; }
+            .tab-active { @apply text-primary border-primary font-medium; }
+        }
+    </style>
+    
+    <style>
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+        .animate-scan { animation: scan 2s linear infinite; }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800 dark:bg-dark-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <!-- Header Navigation -->
+    <header class="bg-white dark:bg-dark-900 shadow-sm sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-qrcode text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    QR Code Tool
+                </h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#generator" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" id="nav-generator">Generator</a>
+                <a href="#reader" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" id="nav-reader">Reader</a>
+                <button id="lang-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors">
+                    <i class="fa fa-language text-gray-600 dark:text-gray-300"></i>
+                </button>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors">
+                    <i class="fa fa-moon-o dark:hidden text-gray-600"></i>
+                    <i class="fa fa-sun-o hidden dark:block text-gray-300"></i>
+                </button>
+            </div>
+            <button class="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors" id="mobile-menu-btn">
+                <i class="fa fa-bars text-gray-600 dark:text-gray-300"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-dark-900 border-t border-gray-100 dark:border-dark-800">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#generator" class="py-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" id="mobile-nav-generator">Generator</a>
+                <a href="#reader" class="py-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" id="mobile-nav-reader">Reader</a>
+                <button id="mobile-lang-toggle" class="py-2 text-left text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
+                    <i class="fa fa-language mr-2"></i><span id="mobile-lang-text">Switch Language</span>
+                </button>
+                <button id="mobile-theme-toggle" class="py-2 text-left text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
+                    <i class="fa fa-moon-o dark:hidden mr-2"></i>
+                    <i class="fa fa-sun-o hidden dark:block mr-2"></i>Switch Theme
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Tool Introduction -->
+        <section class="text-center mb-12 max-w-3xl mx-auto">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" id="intro-title">
+                Professional QR Code Solution
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg mb-6" id="intro-desc">
+                Easily generate custom QR codes with logo support and read existing QR codes from images or camera
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#generator" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium btn-hover" id="intro-generate-btn">
+                    <i class="fa fa-magic mr-2"></i>Generate QR Code
+                </a>
+                <a href="#reader" class="bg-white dark:bg-dark-800 border border-gray-300 dark:border-dark-700 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-dark-700 btn-hover" id="intro-read-btn">
+                    <i class="fa fa-camera mr-2"></i>Scan QR Code
+                </a>
+            </div>
+        </section>
+
+        <!-- Generator Section with Tabs -->
+        <section id="generator" class="mb-16 scroll-mt-20">
+            <div class="bg-white dark:bg-dark-900 rounded-2xl card-shadow p-6 md:p-8 transition-colors duration-300">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                        <i class="fa fa-magic text-primary"></i>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold" id="generator-title">QR Code Generator</h3>
+                </div>
+                
+                <!-- Generator Tabs -->
+                <div class="border-b border-gray-200 dark:border-dark-800 mb-6">
+                    <div class="flex space-x-8">
+                        <button id="single-tab" class="tab-active py-3 border-b-2 border-transparent hover:text-primary transition-colors">
+                            Single QR Code
+                        </button>
+                        <button id="batch-tab" class="py-3 border-b-2 border-transparent hover:text-primary transition-colors">
+                            Batch Generation
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Single QR Code Generator -->
+                <div id="single-generator">
+                    <div class="grid md:grid-cols-12 gap-8">
+                        <!-- Left Settings Panel -->
+                        <div class="md:col-span-5 space-y-6">
+                            <!-- Content Input -->
+                            <div>
+                                <label for="code-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-content-label">
+                                    Content
+                                </label>
+                                <textarea 
+                                    id="code-content" 
+                                    rows="4" 
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 rounded-lg input-focus resize-none transition-colors duration-300"
+                                    placeholder="Enter text, URL or other content to generate QR code..."
+                                >https://example.com</textarea>
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" id="generator-content-hint">
+                                    Supports URLs, text, contact information, etc.
+                                </p>
+                            </div>
+                            
+                            <!-- QR Code Settings -->
+                            <div id="qr-settings" class="space-y-6">
+                                <!-- Size Setting -->
+                                <div>
+                                    <label for="code-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-size-label">
+                                        Size
+                                    </label>
+                                    <div class="flex items-center space-x-4">
+                                        <input 
+                                            type="range" 
+                                            id="code-size" 
+                                            min="128" 
+                                            max="512" 
+                                            step="32" 
+                                            value="256"
+                                            class="w-full h-2 bg-gray-200 dark:bg-dark-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                                        >
+                                        <span id="size-value" class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[50px] text-center">256px</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Color Settings -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="code-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-forecolor-label">
+                                            Foreground Color
+                                        </label>
+                                        <div class="flex">
+                                            <input 
+                                                type="color" 
+                                                id="code-color" 
+                                                value="#000000"
+                                                class="w-10 h-10 p-0 border border-gray-300 dark:border-dark-700 rounded-l-lg"
+                                            >
+                                            <input 
+                                                type="text" 
+                                                id="code-color-text" 
+                                                value="#000000"
+                                                class="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-700 border-l-0 bg-white dark:bg-dark-800 rounded-r-lg input-focus transition-colors duration-300"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="code-bg-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-bgcolor-label">
+                                            Background Color
+                                        </label>
+                                        <div class="flex">
+                                            <input 
+                                                type="color" 
+                                                id="code-bg-color" 
+                                                value="#FFFFFF"
+                                                class="w-10 h-10 p-0 border border-gray-300 dark:border-dark-700 rounded-l-lg"
+                                            >
+                                            <input 
+                                                type="text" 
+                                                id="code-bg-color-text" 
+                                                value="#FFFFFF"
+                                                class="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-700 border-l-0 bg-white dark:bg-dark-800 rounded-r-lg input-focus transition-colors duration-300"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Logo Settings -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-logo-label">
+                                        Upload Logo
+                                    </label>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-dark-700 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer" id="logo-dropzone">
+                                        <input type="file" id="logo-upload" accept="image/*" class="hidden">
+                                        <i class="fa fa-cloud-upload text-gray-400 dark:text-gray-500 text-2xl mb-2"></i>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400" id="generator-logo-hint1">Click or drag image here</p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="generator-logo-hint2">Supports PNG, JPG, transparent background recommended</p>
+                                    </div>
+                                    <div id="logo-preview-container" class="mt-3 hidden">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <img id="logo-preview" src="" alt="Logo preview" class="w-10 h-10 object-contain rounded">
+                                                <span id="logo-filename" class="ml-2 text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px]"></span>
+                                            </div>
+                                            <button id="remove-logo" class="text-gray-400 dark:text-gray-500 hover:text-red-500 p-1">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Logo Size -->
+                                        <div class="mt-4">
+                                            <label for="logo-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="generator-logosize-label">
+                                                Logo Size
+                                            </label>
+                                            <div class="flex items-center space-x-4">
+                                                <input 
+                                                    type="range" 
+                                                    id="logo-size" 
+                                                    min="10" 
+                                                    max="30" 
+                                                    step="1" 
+                                                    value="20"
+                                                    class="w-full h-2 bg-gray-200 dark:bg-dark-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                                                >
+                                                <span id="logo-size-value" class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[50px] text-center">20%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Generate Button -->
+                            <button id="generate-btn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg btn-hover">
+                                <i class="fa fa-refresh mr-2"></i><span id="generate-btn-text">Generate QR Code</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Right Preview Panel -->
+                        <div class="md:col-span-7">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-medium text-gray-700 dark:text-gray-300" id="generator-preview">Preview</h4>
+                                <div class="flex space-x-2">
+                                    <button id="download-png" class="px-3 py-1.5 bg-gray-100 dark:bg-dark-800 hover:bg-gray-200 dark:hover:bg-dark-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm btn-hover transition-colors duration-300">
+                                        <i class="fa fa-download mr-1"></i>PNG
+                                    </button>
+                                    <button id="download-svg" class="px-3 py-1.5 bg-gray-100 dark:bg-dark-800 hover:bg-gray-200 dark:hover:bg-dark-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm btn-hover transition-colors duration-300">
+                                        <i class="fa fa-download mr-1"></i>SVG
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Area -->
+                            <div class="border border-gray-200 dark:border-dark-800 rounded-xl p-8 flex items-center justify-center bg-gray-50 dark:bg-dark-800 transition-colors duration-300" id="preview-container">
+                                <div class="text-center" id="empty-preview">
+                                    <i class="fa fa-qrcode text-gray-300 dark:text-gray-600 text-5xl mb-3"></i>
+                                    <p class="text-gray-500 dark:text-gray-400" id="generator-empty-preview">Enter content and click generate button</p>
+                                </div>
+                                <div id="code-preview" class="hidden">
+                                    <div id="code-image-container" class="relative">
+                                        <canvas id="code-canvas" class="mx-auto"></canvas>
+                                        <svg id="code-svg" class="hidden"></svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Generation Info -->
+                            <div id="generation-info" class="mt-4 p-3 bg-gray-50 dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-800 hidden transition-colors duration-300">
+                                <div class="flex items-start">
+                                    <i class="fa fa-info-circle text-primary mt-0.5 mr-2"></i>
+                                    <div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                                            <span id="generation-status">QR code generated successfully</span>
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            <span id="generator-content-label-text">Content:</span> <span id="generated-content">https://example.com</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Batch QR Code Generator -->
+                <div id="batch-generator" class="hidden">
+                    <div class="space-y-6">
+                        <!-- Batch Content Input -->
+                        <div>
+                            <label for="batch-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-content-label">
+                                Multiple Contents (one per line)
+                            </label>
+                            <textarea 
+                                id="batch-content" 
+                                rows="8" 
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 rounded-lg input-focus resize-none transition-colors duration-300"
+                                placeholder="Enter multiple lines of content, one per line. Each line will generate a separate QR code.
+
+Example:
+https://example.com/page1
+https://example.com/page2
+Contact: John Doe
+Product ID: 12345
+..."
+                            >https://example.com/page1
+https://example.com/page2
+https://example.com/page3
+Contact: John Doe
+Product ID: 12345</textarea>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" id="batch-content-hint">
+                                Each line will generate a separate QR code. Empty lines will be ignored.
+                            </p>
+                        </div>
+                        
+                        <!-- Batch QR Code Settings -->
+                        <div id="batch-qr-settings" class="grid md:grid-cols-2 gap-6">
+                            <!-- Size and Format Settings -->
+                            <div class="space-y-6">
+                                <!-- Size Setting -->
+                                <div>
+                                    <label for="batch-code-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-size-label">
+                                        Size
+                                    </label>
+                                    <div class="flex items-center space-x-4">
+                                        <input 
+                                            type="range" 
+                                            id="batch-code-size" 
+                                            min="128" 
+                                            max="512" 
+                                            step="32" 
+                                            value="256"
+                                            class="w-full h-2 bg-gray-200 dark:bg-dark-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                                        >
+                                        <span id="batch-size-value" class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[50px] text-center">256px</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Format Selection -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-format-label">
+                                        Output Format
+                                    </label>
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="batch-format" value="png" checked class="text-primary focus:ring-primary">
+                                            <span class="ml-2 text-gray-700 dark:text-gray-300">PNG</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="batch-format" value="svg" class="text-primary focus:ring-primary">
+                                            <span class="ml-2 text-gray-700 dark:text-gray-300">SVG</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Color and Logo Settings -->
+                            <div class="space-y-6">
+                                <!-- Color Settings -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="batch-code-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-forecolor-label">
+                                            Foreground Color
+                                        </label>
+                                        <div class="flex">
+                                            <input 
+                                                type="color" 
+                                                id="batch-code-color" 
+                                                value="#000000"
+                                                class="w-10 h-10 p-0 border border-gray-300 dark:border-dark-700 rounded-l-lg"
+                                            >
+                                            <input 
+                                                type="text" 
+                                                id="batch-code-color-text" 
+                                                value="#000000"
+                                                class="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-700 border-l-0 bg-white dark:bg-dark-800 rounded-r-lg input-focus transition-colors duration-300"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="batch-code-bg-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-bgcolor-label">
+                                            Background Color
+                                        </label>
+                                        <div class="flex">
+                                            <input 
+                                                type="color" 
+                                                id="batch-code-bg-color" 
+                                                value="#FFFFFF"
+                                                class="w-10 h-10 p-0 border border-gray-300 dark:border-dark-700 rounded-l-lg"
+                                            >
+                                            <input 
+                                                type="text" 
+                                                id="batch-code-bg-color-text" 
+                                                value="#FFFFFF"
+                                                class="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-700 border-l-0 bg-white dark:bg-dark-800 rounded-r-lg input-focus transition-colors duration-300"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Logo Settings -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-logo-label">
+                                        Upload Logo (optional)
+                                    </label>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-dark-700 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer" id="batch-logo-dropzone">
+                                        <input type="file" id="batch-logo-upload" accept="image/*" class="hidden">
+                                        <i class="fa fa-cloud-upload text-gray-400 dark:text-gray-500 text-2xl mb-2"></i>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400" id="batch-logo-hint1">Click or drag image here</p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="batch-logo-hint2">Supports PNG, JPG, transparent background recommended</p>
+                                    </div>
+                                    <div id="batch-logo-preview-container" class="mt-3 hidden">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <img id="batch-logo-preview" src="" alt="Logo preview" class="w-10 h-10 object-contain rounded">
+                                                <span id="batch-logo-filename" class="ml-2 text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px]"></span>
+                                            </div>
+                                            <button id="batch-remove-logo" class="text-gray-400 dark:text-gray-500 hover:text-red-500 p-1">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Logo Size -->
+                                        <div class="mt-4">
+                                            <label for="batch-logo-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="batch-logosize-label">
+                                                Logo Size
+                                            </label>
+                                            <div class="flex items-center space-x-4">
+                                                <input 
+                                                    type="range" 
+                                                    id="batch-logo-size" 
+                                                    min="10" 
+                                                    max="30" 
+                                                    step="1" 
+                                                    value="20"
+                                                    class="w-full h-2 bg-gray-200 dark:bg-dark-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                                                >
+                                                <span id="batch-logo-size-value" class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[50px] text-center">20%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress and Actions -->
+                        <div class="border-t border-gray-200 dark:border-dark-800 pt-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-center">
+                                    <div id="batch-counter" class="hidden mr-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <span id="batch-completed">0</span> / <span id="batch-total">0</span> generated
+                                    </div>
+                                    <div id="batch-progress-container" class="hidden w-full md:w-64 h-2 bg-gray-200 dark:bg-dark-800 rounded-full overflow-hidden">
+                                        <div id="batch-progress-bar" class="h-full bg-primary w-0 transition-all duration-300"></div>
+                                    </div>
+                                </div>
+                                <button id="batch-generate-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg btn-hover self-start md:self-auto">
+                                    <i class="fa fa-cogs mr-2"></i><span id="batch-generate-btn-text">Generate All & Download ZIP</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reader Section -->
+        <section id="reader" class="mb-16 scroll-mt-20">
+            <div class="bg-white dark:bg-dark-900 rounded-2xl card-shadow p-6 md:p-8 transition-colors duration-300">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mr-3">
+                        <i class="fa fa-camera text-accent"></i>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold" id="reader-title">QR Code Reader</h3>
+                </div>
+                
+                <div class="grid md:grid-cols-12 gap-8">
+                    <!-- Left Reading Area -->
+                    <div class="md:col-span-5 space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="reader-upload-label">
+                                Upload QR Code Image
+                            </label>
+                            <div class="border-2 border-dashed border-gray-300 dark:border-dark-700 rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer" id="reader-dropzone">
+                                <input type="file" id="qr-upload" accept="image/*" class="hidden">
+                                <i class="fa fa-image text-gray-400 dark:text-gray-500 text-3xl mb-3"></i>
+                                <p class="text-sm text-gray-500 dark:text-gray-400" id="reader-upload-hint1">Click or drag QR code image here</p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="reader-upload-hint2">Supports PNG, JPG, WEBP formats</p>
+                            </div>
+                            <div id="qr-preview-container" class="mt-4 hidden">
+                                <img id="qr-preview" src="" alt="QR code preview" class="w-full h-auto rounded-lg border border-gray-200 dark:border-dark-800">
+                                <div class="flex justify-between mt-3">
+                                    <button id="remove-qr" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-500" id="reader-remove-image">
+                                        <i class="fa fa-times mr-1"></i><span id="remove-qr-text">Remove image</span>
+                                    </button>
+                                    <button id="analyze-btn" class="text-sm bg-accent hover:bg-accent/90 text-white px-3 py-1.5 rounded-lg btn-hover" id="reader-read-btn">
+                                        <i class="fa fa-search mr-1"></i><span id="analyze-btn-text">Read QR code</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 dark:border-dark-800 pt-4">
+                            <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3" id="reader-camera-label">Or scan with camera</h4>
+                            <div class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-800 aspect-video transition-colors duration-300">
+                                <video id="camera-preview" class="w-full h-full object-cover" autoplay muted playsinline></video>
+                                <div id="camera-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <!-- Scan frame -->
+                                    <div class="w-48 h-48 border-2 border-green-500 relative">
+                                        <div class="absolute top-0 left-0 w-full h-0.5 bg-green-500 animate-scan"></div>
+                                        <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-green-500"></div>
+                                        <div class="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-green-500"></div>
+                                        <div class="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-green-500"></div>
+                                        <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-green-500"></div>
+                                    </div>
+                                </div>
+                                <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-dark-800 transition-colors duration-300">
+                                    <i class="fa fa-video-camera text-gray-400 dark:text-gray-500 text-3xl mb-3"></i>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400" id="reader-camera-placeholder">Click to activate camera</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center mt-3 space-x-3">
+                                <button id="start-camera" class="text-sm bg-accent hover:bg-accent/90 text-white px-3 py-1.5 rounded-lg btn-hover" id="reader-start-camera">
+                                    <i class="fa fa-play mr-1"></i><span id="start-camera-text">Start Camera</span>
+                                </button>
+                                <button id="stop-camera" class="text-sm bg-gray-200 dark:bg-dark-800 hover:bg-gray-300 dark:hover:bg-dark-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg btn-hover hidden transition-colors duration-300" id="reader-stop-camera">
+                                    <i class="fa fa-stop mr-1"></i><span id="stop-camera-text">Stop Camera</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Result Area -->
+                    <div class="md:col-span-7">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-4" id="reader-result-title">Scan Result</h4>
+                        <div class="border border-gray-200 dark:border-dark-800 rounded-xl p-6 min-h-[350px] bg-gray-50 dark:bg-dark-800 flex flex-col transition-colors duration-300" id="result-container">
+                            <div id="empty-result" class="flex-1 flex flex-col items-center justify-center text-center">
+                                <i class="fa fa-question-circle text-gray-300 dark:text-gray-600 text-5xl mb-3"></i>
+                                <p class="text-gray-500 dark:text-gray-400" id="reader-empty-result">Upload a QR code image or scan with camera</p>
+                            </div>
+                            
+                            <div id="loading-result" class="flex-1 flex flex-col items-center justify-center hidden">
+                                <div class="w-12 h-12 border-4 border-gray-200 dark:border-dark-700 border-t-accent rounded-full animate-spin mb-3"></div>
+                                <p class="text-gray-600 dark:text-gray-300" id="reader-loading">Reading QR code...</p>
+                            </div>
+                            
+                            <div id="success-result" class="flex-1 flex flex-col hidden">
+                                <div class="mb-4">
+                                    <span class="inline-block px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs rounded-full" id="reader-success">
+                                        Read successfully
+                                    </span>
+                                </div>
+                                <div class="bg-white dark:bg-dark-900 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex-1 overflow-auto mb-4 transition-colors duration-300">
+                                    <pre id="decoded-content" class="whitespace-pre-wrap break-all text-gray-800 dark:text-gray-200"></pre>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button id="copy-result" class="px-3 py-1.5 bg-gray-200 dark:bg-dark-800 hover:bg-gray-300 dark:hover:bg-dark-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm btn-hover transition-colors duration-300" id="reader-copy-btn">
+                                        <i class="fa fa-copy mr-1"></i><span id="copy-result-text">Copy content</span>
+                                    </button>
+                                    <button id="use-result" class="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm btn-hover" id="reader-use-btn">
+                                        <i class="fa fa-arrow-right mr-1"></i><span id="use-result-text">Use for generation</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="error-result" class="flex-1 flex flex-col items-center justify-center hidden">
+                                <i class="fa fa-exclamation-triangle text-yellow-400 text-5xl mb-3"></i>
+                                <p class="text-gray-600 dark:text-gray-300 mb-2" id="reader-error">Could not read QR code</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md" id="reader-error-hint">
+                                    Please ensure the image is clear and contains a valid QR code, or try another image
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section class="mb-16">
+            <h3 class="text-2xl font-bold text-center mb-10" id="features-title">Features</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-dark-900 rounded-xl p-6 card-shadow hover:shadow-lg transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <i class="fa fa-qrcode text-primary text-xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-2" id="features-1-title">Custom QR Codes</h4>
+                    <p class="text-gray-600 dark:text-gray-300" id="features-1-desc">
+                        Generate QR codes with custom colors, sizes, and add your own logo for branding
+                    </p>
+                </div>
+                
+                <div class="bg-white dark:bg-dark-900 rounded-xl p-6 card-shadow hover:shadow-lg transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                        <i class="fa fa-download text-accent text-xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-2" id="features-2-title">Multiple Formats</h4>
+                    <p class="text-gray-600 dark:text-gray-300" id="features-2-desc">
+                        Download your QR codes in PNG or SVG format for digital or print use
+                    </p>
+                </div>
+                
+                <div class="bg-white dark:bg-dark-900 rounded-xl p-6 card-shadow hover:shadow-lg transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <i class="fa fa-mobile text-primary text-xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-2" id="features-3-title">Batch Generation</h4>
+                    <p class="text-gray-600 dark:text-gray-300" id="features-3-desc">
+                        Generate multiple QR codes at once from list of data and download as ZIP file
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white dark:bg-dark-900 border-t border-gray-200 dark:border-dark-800 py-8 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fa fa-qrcode text-primary text-xl mr-2"></i>
+                    <span class="font-semibold text-gray-800 dark:text-gray-200" id="footer-title">QR Code Tool</span>
+                </div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm" id="footer-copyright">
+                    © 2023 QR Code Tool - Free online QR code generation and reading service
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification -->
+    <div id="notification" class="fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50"></div>
+
+    <script>
+        // DOM Elements
+        const codeContent = document.getElementById('code-content');
+        const codeSize = document.getElementById('code-size');
+        const sizeValue = document.getElementById('size-value');
+        const codeColor = document.getElementById('code-color');
+        const codeColorText = document.getElementById('code-color-text');
+        const codeBgColor = document.getElementById('code-bg-color');
+        const codeBgColorText = document.getElementById('code-bg-color-text');
+        const logoDropzone = document.getElementById('logo-dropzone');
+        const logoUpload = document.getElementById('logo-upload');
+        const logoPreviewContainer = document.getElementById('logo-preview-container');
+        const logoPreview = document.getElementById('logo-preview');
+        const logoFilename = document.getElementById('logo-filename');
+        const removeLogo = document.getElementById('remove-logo');
+        const logoSizeSlider = document.getElementById('logo-size');
+        const logoSizeValue = document.getElementById('logo-size-value');
+        const generateBtn = document.getElementById('generate-btn');
+        const downloadPng = document.getElementById('download-png');
+        const downloadSvg = document.getElementById('download-svg');
+        const emptyPreview = document.getElementById('empty-preview');
+        const codePreview = document.getElementById('code-preview');
+        const codeCanvas = document.getElementById('code-canvas');
+        const codeSvg = document.getElementById('code-svg');
+        const generationInfo = document.getElementById('generation-info');
+        const generationStatus = document.getElementById('generation-status');
+        const generatedContent = document.getElementById('generated-content');
+        
+        // Batch Generator Elements
+        const singleTab = document.getElementById('single-tab');
+        const batchTab = document.getElementById('batch-tab');
+        const singleGenerator = document.getElementById('single-generator');
+        const batchGenerator = document.getElementById('batch-generator');
+        const batchContent = document.getElementById('batch-content');
+        const batchCodeSize = document.getElementById('batch-code-size');
+        const batchSizeValue = document.getElementById('batch-size-value');
+        const batchCodeColor = document.getElementById('batch-code-color');
+        const batchCodeColorText = document.getElementById('batch-code-color-text');
+        const batchCodeBgColor = document.getElementById('batch-code-bg-color');
+        const batchCodeBgColorText = document.getElementById('batch-code-bg-color-text');
+        const batchLogoDropzone = document.getElementById('batch-logo-dropzone');
+        const batchLogoUpload = document.getElementById('batch-logo-upload');
+        const batchLogoPreviewContainer = document.getElementById('batch-logo-preview-container');
+        const batchLogoPreview = document.getElementById('batch-logo-preview');
+        const batchLogoFilename = document.getElementById('batch-logo-filename');
+        const batchRemoveLogo = document.getElementById('batch-remove-logo');
+        const batchLogoSizeSlider = document.getElementById('batch-logo-size');
+        const batchLogoSizeValue = document.getElementById('batch-logo-size-value');
+        const batchGenerateBtn = document.getElementById('batch-generate-btn');
+        const batchCounter = document.getElementById('batch-counter');
+        const batchCompleted = document.getElementById('batch-completed');
+        const batchTotal = document.getElementById('batch-total');
+        const batchProgressContainer = document.getElementById('batch-progress-container');
+        const batchProgressBar = document.getElementById('batch-progress-bar');
+        
+        // Reader Elements
+        const readerDropzone = document.getElementById('reader-dropzone');
+        const qrUpload = document.getElementById('qr-upload');
+        const qrPreviewContainer = document.getElementById('qr-preview-container');
+        const qrPreview = document.getElementById('qr-preview');
+        const removeQr = document.getElementById('remove-qr');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const cameraPreview = document.getElementById('camera-preview');
+        const cameraOverlay = document.getElementById('camera-overlay');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const startCamera = document.getElementById('start-camera');
+        const stopCamera = document.getElementById('stop-camera');
+        const emptyResult = document.getElementById('empty-result');
+        const loadingResult = document.getElementById('loading-result');
+        const successResult = document.getElementById('success-result');
+        const errorResult = document.getElementById('error-result');
+        const decodedContent = document.getElementById('decoded-content');
+        const copyResult = document.getElementById('copy-result');
+        const useResult = document.getElementById('use-result');
+        
+        // Common Elements
+        const notification = document.getElementById('notification');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const themeToggle = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+        const langToggle = document.getElementById('lang-toggle');
+        const mobileLangToggle = document.getElementById('mobile-lang-toggle');
+        
+        // Global Variables
+        let logoImage = null;
+        let batchLogoImage = null;
+        let stream = null;
+        let scanning = false;
+        let isDarkMode = false;
+        let isEnglish = true; // Default to English
+        
+        // Language translations
+        const translations = {
+            en: {
+                "intro-title": "Professional QR Code Solution",
+                "intro-desc": "Easily generate custom QR codes with logo support and read existing QR codes from images or camera",
+                "intro-generate-btn": "Generate QR Code",
+                "intro-read-btn": "Scan QR Code",
+                
+                "generator-title": "QR Code Generator",
+                "single-tab": "Single QR Code",
+                "batch-tab": "Batch Generation",
+                "generator-content-label": "Content",
+                "code-content-placeholder": "Enter text, URL or other content to generate QR code...",
+                "generator-content-hint": "Supports URLs, text, contact information, etc.",
+                "generator-size-label": "Size",
+                "generator-forecolor-label": "Foreground Color",
+                "generator-bgcolor-label": "Background Color",
+                "generator-logo-label": "Upload Logo",
+                "generator-logo-hint1": "Click or drag image here",
+                "generator-logo-hint2": "Supports PNG, JPG, transparent background recommended",
+                "generator-logosize-label": "Logo Size",
+                "generate-btn-text": "Generate QR Code",
+                "generator-preview": "Preview",
+                "generator-empty-preview": "Enter content and click generate button",
+                "generation-status": "QR code generated successfully",
+                "generator-content-label-text": "Content:",
+                "generated-content-default": "https://example.com",
+                
+                // Batch generator translations
+                "batch-content-label": "Multiple Contents (one per line)",
+                "batch-content-placeholder": "Enter multiple lines of content, one per line. Each line will generate a separate QR code.\n\nExample:\nhttps://example.com/page1\nhttps://example.com/page2\nContact: John Doe\nProduct ID: 12345\n...",
+                "batch-content-hint": "Each line will generate a separate QR code. Empty lines will be ignored.",
+                "batch-size-label": "Size",
+                "batch-format-label": "Output Format",
+                "batch-forecolor-label": "Foreground Color",
+                "batch-bgcolor-label": "Background Color",
+                "batch-logo-label": "Upload Logo (optional)",
+                "batch-logo-hint1": "Click or drag image here",
+                "batch-logo-hint2": "Supports PNG, JPG, transparent background recommended",
+                "batch-logosize-label": "Logo Size",
+                "batch-generate-btn-text": "Generate All & Download ZIP",
+                
+                "reader-title": "QR Code Reader",
+                "reader-upload-label": "Upload QR Code Image",
+                "reader-upload-hint1": "Click or drag QR code image here",
+                "reader-upload-hint2": "Supports PNG, JPG, WEBP formats",
+                "remove-qr-text": "Remove image",
+                "analyze-btn-text": "Read QR code",
+                "reader-camera-label": "Or scan with camera",
+                "reader-camera-placeholder": "Click to activate camera",
+                "start-camera-text": "Start Camera",
+                "stop-camera-text": "Stop Camera",
+                "reader-result-title": "Scan Result",
+                "reader-empty-result": "Upload a QR code image or scan with camera",
+                "reader-loading": "Reading QR code...",
+                "reader-success": "Read successfully",
+                "copy-result-text": "Copy content",
+                "use-result-text": "Use for generation",
+                "reader-error": "Could not read QR code",
+                "reader-error-hint": "Please ensure the image is clear and contains a valid QR code, or try another image",
+                
+                "features-title": "Features",
+                "features-1-title": "Custom QR Codes",
+                "features-1-desc": "Generate QR codes with custom colors, sizes, and add your own logo for branding",
+                "features-2-title": "Multiple Formats",
+                "features-2-desc": "Download your QR codes in PNG or SVG format for digital or print use",
+                "features-3-title": "Batch Generation",
+                "features-3-desc": "Generate multiple QR codes at once from list of data and download as ZIP file",
+                
+                "footer-title": "QR Code Tool",
+                "footer-copyright": "© 2023 QR Code Tool - Free online QR code generation and reading service",
+                
+                "nav-generator": "Generator",
+                "nav-reader": "Reader",
+                "mobile-nav-generator": "Generator",
+                "mobile-nav-reader": "Reader",
+                "mobile-lang-text": "Switch Language",
+                
+                "notifications-imageError": "Please upload an image file",
+                "notifications-enterContent": "Please enter content",
+                "notifications-generateError": "Generation failed, please try again",
+                "notifications-downloadSuccess": "Download successful",
+                "notifications-downloadError": "No content to download",
+                "notifications-cameraError": "Could not access camera, please ensure permissions are granted",
+                "notifications-copySuccess": "Content copied",
+                "notifications-copyError": "Copy failed",
+                "notifications-batchEmpty": "Please enter at least one line of content",
+                "notifications-batchProcessing": "Processing QR codes...",
+                "notifications-batchComplete": "Batch generation complete, downloading ZIP..."
+            },
+            zh: {
+                "intro-title": "专业二维码解决方案",
+                "intro-desc": "轻松生成带logo的自定义二维码，并可从图片或相机读取现有二维码",
+                "intro-generate-btn": "生成二维码",
+                "intro-read-btn": "扫描二维码",
+                
+                "generator-title": "二维码生成器",
+                "single-tab": "单个二维码",
+                "batch-tab": "批量生成",
+                "generator-content-label": "内容",
+                "code-content-placeholder": "输入文本、网址或其他内容以生成二维码...",
+                "generator-content-hint": "支持网址、文本、联系信息等",
+                "generator-size-label": "尺寸",
+                "generator-forecolor-label": "前景色",
+                "generator-bgcolor-label": "背景色",
+                "generator-logo-label": "上传Logo",
+                "generator-logo-hint1": "点击或拖拽图片到此处",
+                "generator-logo-hint2": "支持PNG、JPG格式，建议透明背景",
+                "generator-logosize-label": "Logo大小",
+                "generate-btn-text": "生成二维码",
+                "generator-preview": "预览",
+                "generator-empty-preview": "输入内容并点击生成按钮",
+                "generation-status": "二维码生成成功",
+                "generator-content-label-text": "内容:",
+                "generated-content-default": "https://example.com",
+                
+                // Batch generator translations
+                "batch-content-label": "多行内容（每行一个）",
+                "batch-content-placeholder": "输入多行内容，每行一个。每行将生成一个单独的二维码。\n\n示例:\nhttps://example.com/page1\nhttps://example.com/page2\n联系人: 张三\n产品编号: 12345\n...",
+                "batch-content-hint": "每行将生成一个单独的二维码。空行将被忽略。",
+                "batch-size-label": "尺寸",
+                "batch-format-label": "输出格式",
+                "batch-forecolor-label": "前景色",
+                "batch-bgcolor-label": "背景色",
+                "batch-logo-label": "上传Logo（可选）",
+                "batch-logo-hint1": "点击或拖拽图片到此处",
+                "batch-logo-hint2": "支持PNG、JPG格式，建议透明背景",
+                "batch-logosize-label": "Logo大小",
+                "batch-generate-btn-text": "全部生成并下载ZIP",
+                
+                "reader-title": "二维码解析器",
+                "reader-upload-label": "上传二维码图片",
+                "reader-upload-hint1": "点击或拖拽二维码图片到此处",
+                "reader-upload-hint2": "支持PNG、JPG、WEBP格式",
+                "remove-qr-text": "移除图片",
+                "analyze-btn-text": "解析二维码",
+                "reader-camera-label": "或使用摄像头扫描",
+                "reader-camera-placeholder": "点击启用摄像头",
+                "start-camera-text": "启动摄像头",
+                "stop-camera-text": "关闭摄像头",
+                "reader-result-title": "解析结果",
+                "reader-empty-result": "上传二维码图片或使用摄像头扫描",
+                "reader-loading": "正在解析二维码...",
+                "reader-success": "解析成功",
+                "copy-result-text": "复制内容",
+                "use-result-text": "用于生成",
+                "reader-error": "无法解析二维码",
+                "reader-error-hint": "请确保图片清晰且包含有效的二维码，或尝试使用其他图片",
+                
+                "features-title": "功能特点",
+                "features-1-title": "自定义二维码",
+                "features-1-desc": "生成具有自定义颜色、尺寸的二维码，并可添加自己的logo用于品牌展示",
+                "features-2-title": "多种格式",
+                "features-2-desc": "以PNG或SVG格式下载二维码，适用于数字或印刷用途",
+                "features-3-title": "批量生成",
+                "features-3-desc": "从数据列表中一次生成多个二维码并打包为ZIP文件下载",
+                
+                "footer-title": "二维码工具",
+                "footer-copyright": "© 2023 二维码工具 - 免费在线二维码生成与解析服务",
+                
+                "nav-generator": "生成",
+                "nav-reader": "解析",
+                "mobile-nav-generator": "生成",
+                "mobile-nav-reader": "解析",
+                "mobile-lang-text": "切换语言",
+                
+                "notifications-imageError": "请上传图片文件",
+                "notifications-enterContent": "请输入内容",
+                "notifications-generateError": "生成失败，请重试",
+                "notifications-downloadSuccess": "下载成功",
+                "notifications-downloadError": "没有可下载的内容",
+                "notifications-cameraError": "无法访问摄像头，请确保已授予权限",
+                "notifications-copySuccess": "内容已复制",
+                "notifications-copyError": "复制失败",
+                "notifications-batchEmpty": "请至少输入一行内容",
+                "notifications-batchProcessing": "正在处理二维码...",
+                "notifications-batchComplete": "批量生成完成，正在下载ZIP..."
+            }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial content
+            codeContent.value = translations.en["generated-content-default"];
+            generatedContent.textContent = translations.en["generated-content-default"];
+            
+            // Generate default QR code
+            generateCode();
+            
+            // Check theme setting from local storage
+            if (localStorage.getItem('darkMode') === 'true') {
+                toggleDarkMode();
+            }
+            
+            // Check language setting from local storage
+            const savedLang = localStorage.getItem('language');
+            if (savedLang === 'zh') {
+                toggleLanguage();
+            }
+            
+            // Initialize batch size display
+            batchSizeValue.textContent = `${batchCodeSize.value}px`;
+            batchLogoSizeValue.textContent = `${batchLogoSizeSlider.value}%`;
+        });
+        
+        // Tab switching functionality
+        singleTab.addEventListener('click', () => {
+            singleTab.classList.add('tab-active');
+            batchTab.classList.remove('tab-active');
+            singleGenerator.classList.remove('hidden');
+            batchGenerator.classList.add('hidden');
+        });
+        
+        batchTab.addEventListener('click', () => {
+            batchTab.classList.add('tab-active');
+            singleTab.classList.remove('tab-active');
+            batchGenerator.classList.remove('hidden');
+            singleGenerator.classList.add('hidden');
+        });
+        
+        // Size slider event for single generator
+        codeSize.addEventListener('input', () => {
+            const size = parseInt(codeSize.value);
+            sizeValue.textContent = `${size}px`;
+            codeCanvas.width = size;
+            codeCanvas.height = size;
+            codeCanvas.style.width = `${size}px`;
+            codeCanvas.style.height = `${size}px`;
+            generateCode();
+        });
+        
+        // Size slider event for batch generator
+        batchCodeSize.addEventListener('input', () => {
+            batchSizeValue.textContent = `${batchCodeSize.value}px`;
+        });
+        
+        // Color picker events
+        [
+            { color: codeColor, text: codeColorText },
+            { color: batchCodeColor, text: batchCodeColorText }
+        ].forEach(({color, text}) => {
+            color.addEventListener('input', () => {
+                text.value = color.value;
+                if (color.id === 'code-color') generateCode();
+            });
+            
+            text.addEventListener('input', () => {
+                if (/^#[0-9A-F]{6}$/i.test(text.value)) {
+                    color.value = text.value;
+                    if (color.id === 'code-color') generateCode();
+                }
+            });
+        });
+        
+        [
+            { color: codeBgColor, text: codeBgColorText },
+            { color: batchCodeBgColor, text: batchCodeBgColorText }
+        ].forEach(({color, text}) => {
+            color.addEventListener('input', () => {
+                text.value = color.value;
+                if (color.id === 'code-bg-color') generateCode();
+            });
+            
+            text.addEventListener('input', () => {
+                if (/^#[0-9A-F]{6}$/i.test(text.value)) {
+                    color.value = text.value;
+                    if (color.id === 'code-bg-color') generateCode();
+                }
+            });
+        });
+        
+        // Logo upload handling - consolidated for both single and batch
+        function setupLogoHandlers(dropzone, upload, previewContainer, preview, filename, removeBtn, isBatch) {
+            dropzone.addEventListener('click', () => upload.click());
+            
+            ['dragover', 'dragleave', 'drop'].forEach(event => {
+                dropzone.addEventListener(event, (e) => {
+                    e.preventDefault();
+                    if (event === 'dragover') dropzone.classList.add('border-primary');
+                    else dropzone.classList.remove('border-primary');
+                    
+                    if (event === 'drop' && e.dataTransfer.files.length) {
+                        handleLogoUpload(e.dataTransfer.files[0], isBatch);
+                    }
+                });
+            });
+            
+            upload.addEventListener('change', () => {
+                if (upload.files.length) handleLogoUpload(upload.files[0], isBatch);
+            });
+            
+            removeBtn.addEventListener('click', () => {
+                if (isBatch) batchLogoImage = null;
+                else logoImage = null;
+                
+                upload.value = '';
+                previewContainer.classList.add('hidden');
+                if (!isBatch) generateCode();
+            });
+        }
+        
+        // Setup logo handlers for both sections
+        setupLogoHandlers(
+            logoDropzone, logoUpload, logoPreviewContainer, 
+            logoPreview, logoFilename, removeLogo, false
+        );
+        
+        setupLogoHandlers(
+            batchLogoDropzone, batchLogoUpload, batchLogoPreviewContainer, 
+            batchLogoPreview, batchLogoFilename, batchRemoveLogo, true
+        );
+        
+        // Handle logo upload (works for both single and batch)
+        function handleLogoUpload(file, isBatch) {
+            if (!file.type.startsWith('image/')) {
+                showNotification(translations[isEnglish ? 'en' : 'zh']["notifications-imageError"], 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                
+                img.onload = () => {
+                    if (isBatch) {
+                        batchLogoImage = img;
+                        batchLogoPreview.src = e.target.result;
+                        batchLogoFilename.textContent = file.name;
+                        batchLogoPreviewContainer.classList.remove('hidden');
+                    } else {
+                        logoImage = img;
+                        logoPreview.src = e.target.result;
+                        logoFilename.textContent = file.name;
+                        logoPreviewContainer.classList.remove('hidden');
+                        generateCode();
+                    }
+                };
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Logo size slider events
+        logoSizeSlider.addEventListener('input', () => {
+            logoSizeValue.textContent = `${logoSizeSlider.value}%`;
+            if (logoImage) generateCode();
+        });
+        
+        batchLogoSizeSlider.addEventListener('input', () => {
+            batchLogoSizeValue.textContent = `${batchLogoSizeSlider.value}%`;
+        });
+        
+        // Generate button for single QR code
+        generateBtn.addEventListener('click', generateCode);
+        
+        // Generate QR code for single generator
+        function generateCode() {
+            const content = codeContent.value.trim();
+            const lang = isEnglish ? 'en' : 'zh';
+            
+            if (!content) {
+                showNotification(translations[lang]["notifications-enterContent"], 'error');
+                return;
+            }
+            
+            // Show preview area
+            emptyPreview.classList.add('hidden');
+            codePreview.classList.remove('hidden');
+            generationInfo.classList.remove('hidden');
+            
+            // Update generation info
+            generatedContent.textContent = content.length > 30 ? content.substring(0, 30) + '...' : content;
+            generationStatus.textContent = translations[lang]["generation-status"];
+            
+            // Clear canvas
+            const ctx = codeCanvas.getContext('2d');
+            ctx.clearRect(0, 0, codeCanvas.width, codeCanvas.height);
+            
+            // Generate QR code
+            const size = parseInt(codeSize.value);
+            codeCanvas.width = size;
+            codeCanvas.height = size;
+            codeCanvas.style.width = `${size}px`;
+            codeCanvas.style.height = `${size}px`;
+            
+            const options = {
+                errorCorrectionLevel: 'H',
+                color: { dark: codeColor.value, light: codeBgColor.value },
+                width: size,
+                height: size
+            };
+            
+            QRCode.toCanvas(codeCanvas, content, options, (error) => {
+                if (error) {
+                    console.error(error);
+                    showNotification(translations[lang]["notifications-generateError"], 'error');
+                    return;
+                }
+                
+                // Add logo to center if available
+                if (logoImage) {
+                    addLogoToCode(logoImage, logoSizeSlider, codeCanvas, codeBgColor.value);
+                }
+                
+                // Generate SVG for download
+                generateSvgCode(content, size);
+            });
+        }
+        
+        // Add logo to QR code center - Reusable function
+        function addLogoToCode(logoImg, sizeSlider, canvas, bgColor) {
+            const logoSizePercent = parseInt(sizeSlider.value) / 100;
+            const size = canvas.width;
+            const logoSize = size * logoSizePercent;
+            const logoX = (size - logoSize) / 2;
+            const logoY = (size - logoSize) / 2;
+            
+            // Draw white background
+            const padding = logoSize * 0.1;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.roundRect(logoX - padding, logoY - padding, logoSize + padding * 2, logoSize + padding * 2, 4);
+            ctx.fill();
+            
+            // Draw logo
+            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+        }
+        
+        // Generate SVG format code
+        function generateSvgCode(content, size) {
+            const options = {
+                errorCorrectionLevel: 'H',
+                color: { dark: codeColor.value, light: codeBgColor.value },
+                width: size,
+                height: size
+            };
+            
+            QRCode.toString(content, options, (error, svg) => {
+                if (!error) {
+                    const cleanedSvg = svg.replace(/viewBox="[^"]*"/, '');
+                    codeSvg.innerHTML = cleanedSvg;
+                    codeSvg.setAttribute('width', size);
+                    codeSvg.setAttribute('height', size);
+                    codeSvg.style.width = `${size}px`;
+                    codeSvg.style.height = `${size}px`;
+                }
+            });
+        }
+        
+        // Download functionality
+        downloadPng.addEventListener('click', () => downloadQr('png'));
+        downloadSvg.addEventListener('click', () => downloadQr('svg'));
+        
+        function downloadQr(format) {
+            const lang = isEnglish ? 'en' : 'zh';
+            if (format === 'png' && !codeCanvas.toDataURL()) {
+                showNotification(translations[lang]["notifications-downloadError"], 'error');
+                return;
+            }
+            
+            if (format === 'svg' && !codeSvg.innerHTML) {
+                showNotification(translations[lang]["notifications-downloadError"], 'error');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `qrcode.${format}`;
+            
+            if (format === 'png') {
+                link.href = codeCanvas.toDataURL('image/png');
+            } else {
+                const svgData = new XMLSerializer().serializeToString(codeSvg);
+                link.href = URL.createObjectURL(new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'}));
+            }
+            
+            link.click();
+            showNotification(translations[lang]["notifications-downloadSuccess"], 'success');
+            
+            if (format === 'svg') {
+                URL.revokeObjectURL(link.href);
+            }
+        }
+        
+        // Batch generation functionality
+        batchGenerateBtn.addEventListener('click', startBatchGeneration);
+        
+        async function startBatchGeneration() {
+            const lang = isEnglish ? 'en' : 'zh';
+            const content = batchContent.value.trim();
+            
+            // Validate input
+            if (!content) {
+                showNotification(translations[lang]["notifications-batchEmpty"], 'error');
+                return;
+            }
+            
+            // Split content into lines and filter out empty lines
+            const lines = content.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            if (lines.length === 0) {
+                showNotification(translations[lang]["notifications-batchEmpty"], 'error');
+                return;
+            }
+            
+            // Show progress indicators
+            showNotification(translations[lang]["notifications-batchProcessing"], 'info');
+            batchCounter.classList.remove('hidden');
+            batchProgressContainer.classList.remove('hidden');
+            batchCompleted.textContent = '0';
+            batchTotal.textContent = lines.length;
+            batchProgressBar.style.width = '0%';
+            
+            // Disable generate button during processing
+            batchGenerateBtn.disabled = true;
+            batchGenerateBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            
+            try {
+                // Create a new ZIP file
+                const zip = new JSZip();
+                const size = parseInt(batchCodeSize.value);
+                const format = document.querySelector('input[name="batch-format"]:checked').value;
+                const darkColor = batchCodeColor.value;
+                const lightColor = batchCodeBgColor.value;
+                
+                // Create a canvas for batch processing
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Process each line
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const filename = `qrcode-${i+1}`;
+                    
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Generate QR code for this line
+                    await new Promise((resolve, reject) => {
+                        const options = {
+                            errorCorrectionLevel: 'H',
+                            color: { dark: darkColor, light: lightColor },
+                            width: size,
+                            height: size
+                        };
+                        
+                        QRCode.toCanvas(canvas, line, options, (error) => {
+                            if (error) {
+                                reject(error);
+                                return;
+                            }
+                            
+                            // Add logo if available
+                            if (batchLogoImage) {
+                                addLogoToCode(batchLogoImage, batchLogoSizeSlider, canvas, lightColor);
+                            }
+                            
+                            resolve();
+                        });
+                    });
+                    
+                    // Add to ZIP based on selected format
+                    if (format === 'png') {
+                        const dataUrl = canvas.toDataURL('image/png');
+                        const base64Data = dataUrl.split(',')[1];
+                        zip.file(`${filename}.png`, base64Data, { base64: true });
+                    } else {
+                        await new Promise((resolve, reject) => {
+                            const options = {
+                                errorCorrectionLevel: 'H',
+                                color: { dark: darkColor, light: lightColor },
+                                width: size,
+                                height: size
+                            };
+                            
+                            QRCode.toString(line, options, (error, svg) => {
+                                if (error) {
+                                    reject(error);
+                                    return;
+                                }
+                                zip.file(`${filename}.svg`, svg);
+                                resolve();
+                            });
+                        });
+                    }
+                    
+                    // Update progress
+                    const progress = Math.round(((i + 1) / lines.length) * 100);
+                    batchCompleted.textContent = (i + 1).toString();
+                    batchProgressBar.style.width = `${progress}%`;
+                    
+                    // Small delay to allow UI to update
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+                
+                // Generate and download the ZIP file
+                showNotification(translations[lang]["notifications-batchComplete"], 'success');
+                zip.generateAsync({ type: "blob" }).then((content) => {
+                    saveAs(content, "qrcodes-batch.zip");
+                });
+                
+            } catch (error) {
+                console.error('Batch generation error:', error);
+                showNotification(translations[lang]["notifications-generateError"], 'error');
+            } finally {
+                // Reset UI state
+                batchGenerateBtn.disabled = false;
+                batchGenerateBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+        
+        // QR code reader related
+        setupReaderHandlers();
+        
+        function setupReaderHandlers() {
+            // QR upload handlers
+            readerDropzone.addEventListener('click', () => qrUpload.click());
+            
+            ['dragover', 'dragleave', 'drop'].forEach(event => {
+                readerDropzone.addEventListener(event, (e) => {
+                    e.preventDefault();
+                    if (event === 'dragover') readerDropzone.classList.add('border-accent');
+                    else readerDropzone.classList.remove('border-accent');
+                    
+                    if (event === 'drop' && e.dataTransfer.files.length) {
+                        handleQrUpload(e.dataTransfer.files[0]);
+                    }
+                });
+            });
+            
+            qrUpload.addEventListener('change', () => {
+                if (qrUpload.files.length) handleQrUpload(qrUpload.files[0]);
+            });
+            
+            // Remove QR code image
+            removeQr.addEventListener('click', () => {
+                qrUpload.value = '';
+                qrPreviewContainer.classList.add('hidden');
+                readerDropzone.classList.remove('hidden');
+                resetResultView();
+            });
+            
+            // Analyze QR code
+            analyzeBtn.addEventListener('click', analyzeQrCode);
+            
+            // Camera controls
+            startCamera.addEventListener('click', startCameraScan);
+            stopCamera.addEventListener('click', stopCameraScan);
+            
+            // Result handling
+            copyResult.addEventListener('click', copyResultToClipboard);
+            useResult.addEventListener('click', useResultForGeneration);
+        }
+        
+        // Handle QR code image upload
+        function handleQrUpload(file) {
+            const lang = isEnglish ? 'en' : 'zh';
+            if (!file.type.startsWith('image/')) {
+                showNotification(translations[lang]["notifications-imageError"], 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                qrPreview.src = e.target.result;
+                qrPreviewContainer.classList.remove('hidden');
+                readerDropzone.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Analyze QR code
+        function analyzeQrCode() {
+            if (!qrPreview.src) return;
+            
+            resetResultView();
+            loadingResult.classList.remove('hidden');
+            const lang = isEnglish ? 'en' : 'zh';
+            document.getElementById('reader-loading').textContent = translations[lang]["reader-loading"];
+            
+            const img = new Image();
+            img.src = qrPreview.src;
+            
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                loadingResult.classList.add('hidden');
+                
+                if (code) {
+                    decodedContent.textContent = code.data;
+                    successResult.classList.remove('hidden');
+                    document.getElementById('reader-success').textContent = translations[lang]["reader-success"];
+                } else {
+                    errorResult.classList.remove('hidden');
+                }
+            };
+        }
+        
+        // Camera functions
+        async function startCameraScan() {
+            const lang = isEnglish ? 'en' : 'zh';
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                cameraPreview.srcObject = stream;
+                cameraPlaceholder.classList.add('hidden');
+                startCamera.classList.add('hidden');
+                stopCamera.classList.remove('hidden');
+                resetResultView();
+                
+                // Start scanning
+                scanning = true;
+                requestAnimationFrame(tick);
+            } catch (error) {
+                console.error('Could not access camera:', error);
+                showNotification(translations[lang]["notifications-cameraError"], 'error');
+            }
+        }
+        
+        function stopCameraScan() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            scanning = false;
+            cameraPlaceholder.classList.remove('hidden');
+            startCamera.classList.remove('hidden');
+            stopCamera.classList.add('hidden');
+            resetResultView();
+        }
+        
+        // Camera scanning loop
+        async function tick() {
+            if (!scanning) return;
+            
+            if (cameraPreview.readyState === cameraPreview.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                canvas.width = cameraPreview.videoWidth;
+                canvas.height = cameraPreview.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code) {
+                    // QR code found, stop scanning
+                    scanning = false;
+                    const lang = isEnglish ? 'en' : 'zh';
+                    decodedContent.textContent = code.data;
+                    successResult.classList.remove('hidden');
+                    document.getElementById('reader-success').textContent = translations[lang]["reader-success"];
+                    
+                    // Stop camera
+                    stopCameraScan();
+                    return;
+                }
+            }
+            
+            requestAnimationFrame(tick);
+        }
+        
+        // Result handling functions
+        function resetResultView() {
+            const lang = isEnglish ? 'en' : 'zh';
+            emptyResult.classList.remove('hidden');
+            loadingResult.classList.add('hidden');
+            successResult.classList.add('hidden');
+            errorResult.classList.add('hidden');
+        }
+        
+        function copyResultToClipboard() {
+            const lang = isEnglish ? 'en' : 'zh';
+            navigator.clipboard.writeText(decodedContent.textContent)
+                .then(() => showNotification(translations[lang]["notifications-copySuccess"], 'success'))
+                .catch(() => showNotification(translations[lang]["notifications-copyError"], 'error'));
+        }
+        
+        function useResultForGeneration() {
+            // Switch to single generator tab
+            singleTab.click();
+            
+            // Fill content
+            codeContent.value = decodedContent.textContent;
+            generateCode();
+            
+            // Scroll to generator section
+            document.getElementById('generator').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notification.textContent = message;
+            notification.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50';
+            
+            if (type === 'success') notification.classList.add('bg-green-500', 'text-white');
+            else if (type === 'error') notification.classList.add('bg-red-500', 'text-white');
+            else notification.classList.add('bg-blue-500', 'text-white');
+            
+            // Show notification
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Dark mode toggle
+        [themeToggle, mobileThemeToggle].forEach(btn => {
+            btn.addEventListener('click', toggleDarkMode);
+        });
+        
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDarkMode);
+            generateCode(); // Regenerate to适应 dark mode
+        }
+        
+        // Language toggle
+        [langToggle, mobileLangToggle].forEach(btn => {
+            btn.addEventListener('click', toggleLanguage);
+        });
+        
+        function toggleLanguage() {
+            isEnglish = !isEnglish;
+            updateLanguageText();
+            localStorage.setItem('language', isEnglish ? 'en' : 'zh');
+            document.documentElement.lang = isEnglish ? 'en' : 'zh';
+        }
+        
+        // Update all text content based on current language
+        function updateLanguageText() {
+            const lang = isEnglish ? 'en' : 'zh';
+            
+            // Update all elements with translation keys
+            Object.keys(translations[lang]).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    // Handle placeholders
+                    if (key === 'code-content-placeholder') {
+                        document.getElementById('code-content').placeholder = translations[lang][key];
+                    } else if (key === 'batch-content-placeholder') {
+                        document.getElementById('batch-content').placeholder = translations[lang][key];
+                    }
+                    // Handle regular text content
+                    else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+            
+            // Update visible result areas
+            if (!successResult.classList.contains('hidden')) {
+                document.getElementById('reader-success').textContent = translations[lang]["reader-success"];
+            }
+        }
+    </script>
+</body>
+</html>
